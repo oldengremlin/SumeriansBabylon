@@ -1,0 +1,31 @@
+@startuml
+annotation java.lang.Override
+class java.math.BigDecimal
+class java.math.BigInteger
+class java.math.MathContext
+class java.math.RoundingMode
+class java.util.ArrayList
+class java.util.Collections
+class java.util.HashMap
+class java.util.List
+class java.util.Map
+class java.util.Objects
+class java.util.stream.Collectors
+class ua.org.olden.sumeriansbabylon.Base60
+class ua.org.olden.sumeriansbabylon.SumeriansBabylon
+interface java.lang.Comparable
+ua.org.olden.sumeriansbabylon.Base60 ..> java.lang.Override
+ua.org.olden.sumeriansbabylon.Base60 ..> java.math.BigDecimal
+ua.org.olden.sumeriansbabylon.Base60 ..> java.math.BigInteger
+ua.org.olden.sumeriansbabylon.Base60 ..> java.math.MathContext
+ua.org.olden.sumeriansbabylon.Base60 ..> java.math.RoundingMode
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.ArrayList
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.Collections
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.HashMap
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.List
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.Map
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.Objects
+ua.org.olden.sumeriansbabylon.Base60 ..> java.util.stream.Collectors
+ua.org.olden.sumeriansbabylon.Base60 --|> java.lang.Comparable
+ua.org.olden.sumeriansbabylon.SumeriansBabylon ..> java.math.BigInteger
+@enduml
