@@ -14,138 +14,119 @@ import java.util.stream.Collectors;
 
 public final class Base60 implements Comparable<Base60> {
 
-    private static final BigDecimal SIXTY = BigDecimal.valueOf(60);
+    private static final BigInteger SIXTY = BigInteger.valueOf(60);
     private static final MathContext MC = new MathContext(50, RoundingMode.HALF_UP);
 
-    private final BigDecimal decimalValue;
-    private static BigInteger numerator = null;
-    private static BigInteger denominator = BigInteger.valueOf(1);
+    private final BigInteger numerator;
+    private final BigInteger denominator;
 
     // --- Конструктори ---
-    private Base60(BigDecimal value) {
-        this.decimalValue = value.stripTrailingZeros();
+    private Base60(BigInteger num, BigInteger den) {
+        if (den.signum() == 0) {
+            throw new ArithmeticException("Denominator cannot be zero");
+        }
+        // Нормалізація: GCD, знак в num, den > 0
+        BigInteger gcd = num.gcd(den).abs();
+        this.numerator = num.divide(gcd).multiply(BigInteger.valueOf(den.signum()));
+        this.denominator = den.abs().divide(gcd);
     }
 
     public static Base60 fromDecimal(BigDecimal value) {
-        Base60.numerator = value.toBigInteger();
-        return new Base60(value);
+        Objects.requireNonNull(value);
+        // Конвертуємо BigDecimal в точний дріб: unscaled / 10^scale
+        BigInteger num = value.unscaledValue();
+        int scale = value.scale();
+        BigInteger den = BigInteger.ONE;
+        if (scale >= 0) {
+            den = BigInteger.TEN.pow(scale);
+        } else {
+            num = num.multiply(BigInteger.TEN.pow(-scale));
+        }
+        return new Base60(num, den);
     }
 
-    public static Base60 fromFraction(BigInteger numerator, BigInteger denominator) {
-        Base60.numerator = numerator;
-        Base60.denominator = denominator;
-        return new Base60(new BigDecimal(numerator)
-                .divide(new BigDecimal(denominator), MC));
+    public static Base60 fromFraction(BigInteger num, BigInteger den) {
+        return new Base60(num, den);
     }
 
     // --- Парсер типу 2:46:58.30:15 ---
     public static Base60 parse(String input) {
         Objects.requireNonNull(input);
-
         boolean negative = input.startsWith("-");
         if (negative) {
             input = input.substring(1);
         }
-
         String[] parts = input.split("\\.");
-
-        BigDecimal integerPart = parseIntegerPart(parts[0]);
-
-        BigDecimal fractionalPart = BigDecimal.ZERO;
+        BigInteger integerNum = parseIntegerPart(parts[0]);
+        BigInteger fracNum = BigInteger.ZERO;
+        BigInteger fracDen = BigInteger.ONE;
         if (parts.length > 1) {
-            fractionalPart = parseFractionalPart(parts[1]);
+            String[] fracDigits = parts[1].split(":");
+            fracDen = SIXTY.pow(fracDigits.length);
+            for (int i = 0; i < fracDigits.length; i++) {
+                int digit = Integer.parseInt(fracDigits[i]);
+                if (digit < 0 || digit >= 60) {
+                    throw new IllegalArgumentException("Digit must be 0-59");
+                }
+                BigInteger power = SIXTY.pow(fracDigits.length - 1 - i);
+                fracNum = fracNum.add(BigInteger.valueOf(digit).multiply(power));
+            }
         }
-
-        BigDecimal result = integerPart.add(fractionalPart);
-
+        // Збираємо в один дріб: (integerNum * fracDen + fracNum) / fracDen
+        BigInteger totalNum = integerNum.multiply(fracDen).add(fracNum);
         if (negative) {
-            result = result.negate();
+            totalNum = totalNum.negate();
         }
-
-        return new Base60(result);
+        return new Base60(totalNum, fracDen);
     }
 
-    private static BigDecimal parseIntegerPart(String part) {
+    private static BigInteger parseIntegerPart(String part) {
         if (part.isEmpty()) {
-            return BigDecimal.ZERO;
+            return BigInteger.ZERO;
         }
-
         String[] digits = part.split(":");
-
-        BigDecimal result = BigDecimal.ZERO;
-
+        BigInteger result = BigInteger.ZERO;
         for (String d : digits) {
             int digit = Integer.parseInt(d);
             if (digit < 0 || digit >= 60) {
                 throw new IllegalArgumentException("Digit must be 0-59");
             }
-
-            result = result.multiply(SIXTY).add(BigDecimal.valueOf(digit));
+            result = result.multiply(SIXTY).add(BigInteger.valueOf(digit));
         }
-
-        return result;
-    }
-
-    private static BigDecimal parseFractionalPart(String part) {
-        String[] digits = part.split(":");
-
-        BigDecimal result = BigDecimal.ZERO;
-        BigDecimal divisor = SIXTY;
-
-        for (String d : digits) {
-            int digit = Integer.parseInt(d);
-            if (digit < 0 || digit >= 60) {
-                throw new IllegalArgumentException("Digit must be 0-59");
-            }
-
-            result = result.add(
-                    BigDecimal.valueOf(digit).divide(divisor, MC)
-            );
-
-            divisor = divisor.multiply(SIXTY);
-        }
-
         return result;
     }
 
     // --- Конвертація в base-60 список розрядів ---
     public List<Integer> toBase60IntegerDigits() {
-        BigDecimal abs = decimalValue.abs();
-        BigInteger integerPart = abs.toBigInteger();
-
-        if (integerPart.equals(BigInteger.ZERO)) {
+        BigInteger absIntPart = numerator.abs().divide(denominator);  // Ціла частина
+        if (absIntPart.equals(BigInteger.ZERO)) {
             return List.of(0);
         }
-
         List<Integer> digits = new ArrayList<>();
-        BigInteger sixty = BigInteger.valueOf(60);
-
-        while (integerPart.compareTo(BigInteger.ZERO) > 0) {
-            BigInteger[] divRem = integerPart.divideAndRemainder(sixty);
+        while (absIntPart.compareTo(BigInteger.ZERO) > 0) {
+            BigInteger[] divRem = absIntPart.divideAndRemainder(SIXTY);
             digits.add(divRem[1].intValue());
-            integerPart = divRem[0];
+            absIntPart = divRem[0];
         }
-
         Collections.reverse(digits);
         return digits;
     }
 
     public List<Integer> toBase60FractionDigits(int precision) {
-        BigDecimal abs = decimalValue.abs();
-        BigDecimal fraction = abs.subtract(new BigDecimal(abs.toBigInteger()));
-
+        BigInteger absRemainder = numerator.abs().remainder(denominator);
+        if (absRemainder.equals(BigInteger.ZERO)) {
+            return Collections.emptyList();
+        }
         List<Integer> digits = new ArrayList<>();
-
         for (int i = 0; i < precision; i++) {
-            fraction = fraction.multiply(SIXTY, MC);
-            int digit = fraction.intValue();
-            digits.add(digit);
-            fraction = fraction.subtract(BigDecimal.valueOf(digit));
-            if (fraction.compareTo(BigDecimal.ZERO) == 0) {
+            absRemainder = absRemainder.multiply(SIXTY);
+            BigInteger digit = absRemainder.divide(denominator);
+            digits.add(digit.intValue());
+            absRemainder = absRemainder.remainder(denominator);
+            if (absRemainder.equals(BigInteger.ZERO)) {
                 break;
             }
         }
-
         return digits;
     }
 
@@ -179,64 +160,77 @@ public final class Base60 implements Comparable<Base60> {
             result += "." + fracPart;
         }
 
-        return decimalValue.signum() < 0 ? "-" + result : result;
+        return numerator.signum() < 0 ? "-" + result : result;
     }
 
     public String toBase60WithPeriod() {
+        boolean negative = numerator.signum() < 0;
+        BigInteger absNum = numerator.abs();
+        BigInteger intPart = absNum.divide(denominator);
+        BigInteger remainder = absNum.remainder(denominator);
 
-        BigInteger integerPart = numerator.divide(denominator);
-        BigInteger remainder = numerator.remainder(denominator);
+        StringBuilder sb = new StringBuilder();
 
-        StringBuilder result = new StringBuilder();
-
-        result.append(Base60.fromDecimal(new BigDecimal(integerPart)).toString());
+        // Ціла частина
+        List<Integer> intDigits = toBase60IntegerDigitsFor(intPart);  // див. нижче
+        String intStr = intDigits.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(":"));
+        sb.append(intStr);
 
         if (remainder.equals(BigInteger.ZERO)) {
-            return result.toString();
+            return negative ? "-" + sb : sb.toString();
         }
 
-        result.append(".");
+        sb.append(".");
 
         Map<BigInteger, Integer> seen = new HashMap<>();
         List<Integer> digits = new ArrayList<>();
+        Integer cycleStart = null;
 
-        int index = 0;
-
-        while (!remainder.equals(BigInteger.ZERO)) {
-
-            if (seen.containsKey(remainder)) {
-                int cycleStart = seen.get(remainder);
-
-                for (int i = 0; i < digits.size(); i++) {
-                    if (i == cycleStart) {
-                        result.append("(");
-                    }
-                    result.append(digits.get(i));
-                    if (i < digits.size() - 1) {
-                        result.append(":");
-                    }
-                }
-                result.append(")");
-                return result.toString();
+        BigInteger current = remainder;
+        while (!current.equals(BigInteger.ZERO)) {
+            if (seen.containsKey(current)) {
+                cycleStart = seen.get(current);
+                break;
             }
+            seen.put(current, digits.size());
 
-            seen.put(remainder, index++);
-
-            remainder = remainder.multiply(BigInteger.valueOf(60));
-            BigInteger digit = remainder.divide(denominator);
-
+            current = current.multiply(SIXTY);
+            BigInteger digit = current.divide(denominator);
             digits.add(digit.intValue());
-            remainder = remainder.remainder(denominator);
+            current = current.remainder(denominator);
         }
 
         for (int i = 0; i < digits.size(); i++) {
-            result.append(digits.get(i));
+            if (cycleStart != null && i == cycleStart) {
+                sb.append("(");
+            }
+            sb.append(digits.get(i));
             if (i < digits.size() - 1) {
-                result.append(":");
+                sb.append(":");
             }
         }
 
-        return result.toString();
+        if (cycleStart != null) {
+            sb.append(")");
+        }
+
+        return negative ? "-" + sb : sb.toString();
+    }
+
+    private List<Integer> toBase60IntegerDigitsFor(BigInteger n) {
+        if (n.equals(BigInteger.ZERO)) {
+            return List.of(0);
+        }
+        List<Integer> digits = new ArrayList<>();
+        while (n.compareTo(BigInteger.ZERO) > 0) {
+            BigInteger[] divRem = n.divideAndRemainder(SIXTY);
+            digits.add(divRem[1].intValue());
+            n = divRem[0];
+        }
+        Collections.reverse(digits);
+        return digits;
     }
 
     @Override
@@ -246,30 +240,45 @@ public final class Base60 implements Comparable<Base60> {
 
     // --- Доступ до десяткового значення ---
     public BigDecimal toDecimal() {
-        return decimalValue;
+        return new BigDecimal(numerator).divide(new BigDecimal(denominator), MC);
     }
 
     // --- Арифметика ---
     public Base60 add(Base60 other) {
-        return new Base60(this.decimalValue.add(other.decimalValue, MC));
+        BigInteger newNum = this.numerator.multiply(other.denominator)
+                .add(other.numerator.multiply(this.denominator));
+        BigInteger newDen = this.denominator.multiply(other.denominator);
+        return new Base60(newNum, newDen);
     }
 
     public Base60 subtract(Base60 other) {
-        return new Base60(this.decimalValue.subtract(other.decimalValue, MC));
+        BigInteger newNum = this.numerator.multiply(other.denominator)
+                .subtract(other.numerator.multiply(this.denominator));
+        BigInteger newDen = this.denominator.multiply(other.denominator);
+        return new Base60(newNum, newDen);
     }
 
     public Base60 multiply(Base60 other) {
-        return new Base60(this.decimalValue.multiply(other.decimalValue, MC));
+        BigInteger newNum = this.numerator.multiply(other.numerator);
+        BigInteger newDen = this.denominator.multiply(other.denominator);
+        return new Base60(newNum, newDen);
     }
 
     public Base60 divide(Base60 other) {
-        return new Base60(this.decimalValue.divide(other.decimalValue, MC));
+        if (other.numerator.signum() == 0) {
+            throw new ArithmeticException("Division by zero");
+        }
+        BigInteger newNum = this.numerator.multiply(other.denominator);
+        BigInteger newDen = this.denominator.multiply(other.numerator);
+        return new Base60(newNum, newDen);
     }
 
     // --- Comparable ---
     @Override
     public int compareTo(Base60 other) {
-        return this.decimalValue.compareTo(other.decimalValue);
+        BigInteger left = this.numerator.multiply(other.denominator);
+        BigInteger right = other.numerator.multiply(this.denominator);
+        return left.compareTo(right);
     }
 
     @Override
@@ -280,12 +289,12 @@ public final class Base60 implements Comparable<Base60> {
         if (!(o instanceof Base60)) {
             return false;
         }
-        Base60 base60 = (Base60) o;
-        return decimalValue.compareTo(base60.decimalValue) == 0;
+        Base60 other = (Base60) o;
+        return this.compareTo(other) == 0;
     }
 
     @Override
     public int hashCode() {
-        return decimalValue.stripTrailingZeros().hashCode();
+        return Objects.hash(numerator, denominator);
     }
 }
