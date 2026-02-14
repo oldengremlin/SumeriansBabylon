@@ -184,7 +184,7 @@ This is why Babylonian mathematics used base-60 and why we still use:
 
 ## 📄 License
 
-MIT (or your preferred license)
+GNU General Public License v2.0
 
 ------------------------------------------------------------------------
 
