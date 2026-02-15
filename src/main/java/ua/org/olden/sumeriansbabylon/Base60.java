@@ -67,7 +67,7 @@ public final class Base60 implements Comparable<Base60> {
         BigInteger fracNum = BigInteger.ZERO;
         BigInteger fracDen = BigInteger.ONE;
         if (parts.length > 1) {
-            String[] fracDigits = parts[1].split(":");
+            String[] fracDigits = parts[1].replaceAll("[()]", "").split(":");
             fracDen = SIXTY.pow(fracDigits.length);
             for (int i = 0; i < fracDigits.length; i++) {
                 int digit = Integer.parseInt(fracDigits[i]);
@@ -247,6 +247,10 @@ public final class Base60 implements Comparable<Base60> {
     // --- Доступ до десяткового значення ---
     public BigDecimal toDecimal() {
         return new BigDecimal(numerator).divide(new BigDecimal(denominator), MC);
+    }
+
+    public BigInteger toInteger() {
+        return numerator.divide(denominator);
     }
 
     // --- Арифметика ---
