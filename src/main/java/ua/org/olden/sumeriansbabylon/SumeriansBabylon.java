@@ -15,7 +15,7 @@ public class SumeriansBabylon {
 
         Base60 b = Base60.fromFraction(BigInteger.ONE, BigInteger.valueOf(7));
         Base60 e = Base60.parse("0.8:34:17");
-        Base60 f = Base60.parse("0.(8:34:17)");
+        Base60 f = Base60.parse(b.toBase60WithPeriod());
 
         System.out.print(b.toDecimal() + " → ");
         System.out.print(b + " → ");

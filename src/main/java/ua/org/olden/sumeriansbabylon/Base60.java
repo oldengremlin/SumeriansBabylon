@@ -67,10 +67,10 @@ public final class Base60 implements Comparable<Base60> {
         BigInteger fracNum = BigInteger.ZERO;
         BigInteger fracDen = BigInteger.ONE;
         if (parts.length > 1) {
-            String[] fracDigits = parts[1].replaceAll("[()]", "").split(":");
+            String[] fracDigits = parts[1].split(":");
             fracDen = SIXTY.pow(fracDigits.length);
             for (int i = 0; i < fracDigits.length; i++) {
-                int digit = Integer.parseInt(fracDigits[i]);
+                int digit = Integer.parseInt(fracDigits[i].replaceAll("[^\\d]+", ""));
                 if (digit < 0 || digit >= 60) {
                     throw new IllegalArgumentException("Digit must be 0-59");
                 }
