@@ -14,6 +14,64 @@ Supports:
 
 ------------------------------------------------------------------------
 
+## Sample Output
+
+``` java
+        Base60 a = Base60.parse("2:46:58.30:15");
+        System.out.print(a + " → ");
+        System.out.println(a.toDecimal());
+
+        Base60 b = Base60.fromFraction(BigInteger.ONE, BigInteger.valueOf(7));
+        Base60 e = Base60.parse("0.8:34:17");
+        Base60 f = Base60.parse(b.toBase60WithPeriod());
+
+        System.out.print(b.toDecimal() + " → ");
+        System.out.print(b + " → ");
+        System.out.println(b.toBase60WithPeriod());
+
+        System.out.print(e + " → ");
+        System.out.println(e.toDecimal());
+
+        System.out.print(f + " → ");
+        System.out.println(f.toDecimal());
+
+        System.out.println();
+
+        Base60 c = Base60.parse("1:30");
+        Base60 d = Base60.parse("2:15");
+
+        System.out.print(c + " → ");
+        System.out.println(c.toDecimal());
+
+        System.out.print(d + " → ");
+        System.out.println(d.toDecimal());
+
+        System.out.print(c + " + " + d + " = ");
+        System.out.println(c.add(d));
+
+        System.out.print(c.toInteger() + " + " + d.toInteger() + " = ");
+        System.out.print(c.toInteger().add(d.toInteger()) + " → ");
+        System.out.println(Base60.fromInteger(c.toInteger().add(d.toInteger())));
+
+        System.out.println();
+
+        System.out.println(c.compareTo(d));
+```
+
+```
+2:46:58.30:15 → 10018.504166666666666666666666666666666666666666667
+0.14285714285714285714285714285714285714285714285714 → 0.8:34:17:8:34:17:8:34:17:8 → 0.(8:34:17)
+0.8:34:17 → 0.14285648148148148148148148148148148148148148148148
+0.8:34:17 → 0.14285648148148148148148148148148148148148148148148
+
+1:30 → 90
+2:15 → 135
+1:30 + 2:15 = 3:45
+90 + 135 = 225 → 3:45
+
+-1
+```
+
 ## ✨ Features
 
 -   Arbitrary precision rational numbers (`numerator / denominator`)
