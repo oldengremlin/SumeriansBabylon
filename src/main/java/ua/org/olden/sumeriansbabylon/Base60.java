@@ -103,7 +103,7 @@ public final class Base60 implements Comparable<Base60> {
     }
 
     // --- Конвертація в base-60 список розрядів ---
-    public List<Integer> toBase60IntegerDigits() {
+    private List<Integer> toBase60IntegerDigits() {
         BigInteger absIntPart = numerator.abs().divide(denominator);  // Ціла частина
         if (absIntPart.equals(BigInteger.ZERO)) {
             return List.of(0);
@@ -118,7 +118,7 @@ public final class Base60 implements Comparable<Base60> {
         return digits;
     }
 
-    public List<Integer> toBase60FractionDigits(int precision) {
+    private List<Integer> toBase60FractionDigits(int precision) {
         BigInteger absRemainder = numerator.abs().remainder(denominator);
         if (absRemainder.equals(BigInteger.ZERO)) {
             return Collections.emptyList();
