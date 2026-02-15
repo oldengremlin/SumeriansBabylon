@@ -22,6 +22,8 @@ public final class Base60 implements Comparable<Base60> {
 
     // --- Конструктори ---
     private Base60(BigInteger num, BigInteger den) {
+        Objects.requireNonNull(num);
+        Objects.requireNonNull(den);
         if (den.signum() == 0) {
             throw new ArithmeticException("Denominator cannot be zero");
         }
@@ -29,6 +31,10 @@ public final class Base60 implements Comparable<Base60> {
         BigInteger gcd = num.gcd(den).abs();
         this.numerator = num.divide(gcd).multiply(BigInteger.valueOf(den.signum()));
         this.denominator = den.abs().divide(gcd);
+    }
+
+    public static Base60 fromInteger(BigInteger value) {
+        return new Base60(value, BigInteger.ONE);
     }
 
     public static Base60 fromDecimal(BigDecimal value) {
