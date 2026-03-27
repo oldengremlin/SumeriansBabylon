@@ -17,6 +17,41 @@ public final class Base60 implements Comparable<Base60> {
     private static final BigInteger SIXTY = BigInteger.valueOf(60);
     private static final MathContext MC = new MathContext(50, RoundingMode.HALF_UP);
 
+    // --- Клинопис ---
+    // Нуль: 𒑱 (U+12471) — вертикальне двокрапля, пізньовавилонський знак-розділювач
+    // Роздільник цілої та дробової частин: 𒑲 (U+12472) — діагональне двокрапля
+    private static final String   CUNEIFORM_ZERO = Character.toString(0x12471);
+    private static final String   CUNEIFORM_FRAC = Character.toString(0x12472);
+    private static final String[] CUNEIFORM_DIGITS = buildCuneiformDigits();
+
+    private static String[] buildCuneiformDigits() {
+        // Одиниці 1–9: готові злиті знаки (ASH = вертикальний клин)
+        //   1 → 𒁹 U+12079,  2–9 → U+12400–U+12407
+        String[] ones = {
+            "",
+            Character.toString(0x12079),  // 𒁹  1
+            Character.toString(0x12400),  // 𒐀  2
+            Character.toString(0x12401),  // 𒐁  3
+            Character.toString(0x12402),  // 𒐂  4
+            Character.toString(0x12403),  // 𒐃  5
+            Character.toString(0x12404),  // 𒐄  6
+            Character.toString(0x12405),  // 𒐅  7
+            Character.toString(0x12406),  // 𒐆  8
+            Character.toString(0x12407),  // 𒐇  9
+        };
+        // Десятки: повторення знаку Winkelhaken 𒌋 (U+1230B)
+        //   10→𒌋  20→𒌋𒌋  30→𒌋𒌋𒌋  40→𒌋𒌋𒌋𒌋  50→𒌋𒌋𒌋𒌋𒌋
+        String ten = Character.toString(0x1230B);
+        String[] tens = { "", ten, ten+ten, ten+ten+ten, ten+ten+ten+ten, ten+ten+ten+ten+ten };
+
+        String[] digits = new String[60];
+        digits[0] = Character.toString(0x12471); // 𒑱 нуль
+        for (int i = 1; i < 60; i++) {
+            digits[i] = tens[i / 10] + ones[i % 10];
+        }
+        return digits;
+    }
+
     private final BigInteger numerator;
     private final BigInteger denominator;
 
@@ -258,6 +293,38 @@ public final class Base60 implements Comparable<Base60> {
     @Override
     public String toString() {
         return toString(10); // дефолтна точність
+    }
+
+    // Виводить число шумерсько-вавилонським клинописом.
+    // Розряди розділені пробілом; 𒑲 відокремлює цілу частину від дробової.
+    // Нуль у будь-якій позиції: 𒑱
+    // Від'ємні числа позначаються знаком «-» (клинопис знака мінус не мав).
+    public String toSumerianString() {
+        List<Integer> intDigits  = toBase60IntegerDigits();
+        List<Integer> fracDigits = toBase60FractionDigits(10);
+
+        // обрізаємо нулі в кінці дробової частини
+        int lastNonZero = fracDigits.size() - 1;
+        while (lastNonZero >= 0 && fracDigits.get(lastNonZero) == 0) {
+            lastNonZero--;
+        }
+        fracDigits = lastNonZero >= 0
+                ? fracDigits.subList(0, lastNonZero + 1)
+                : Collections.emptyList();
+
+        String intPart = intDigits.stream()
+                .map(d -> CUNEIFORM_DIGITS[d])
+                .collect(Collectors.joining(" "));
+
+        String result = intPart;
+        if (!fracDigits.isEmpty()) {
+            String fracPart = fracDigits.stream()
+                    .map(d -> CUNEIFORM_DIGITS[d])
+                    .collect(Collectors.joining(" "));
+            result += CUNEIFORM_FRAC + fracPart;
+        }
+
+        return numerator.signum() < 0 ? "-" + result : result;
     }
 
     // --- Доступ до десяткового значення ---
