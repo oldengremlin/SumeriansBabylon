@@ -10,6 +10,7 @@ public class SumeriansBabylon {
 
     public static void main(String[] args) {
         Base60 a = Base60.parse("2:46:58.30:15");
+        System.out.print(a.toSumerianString() + " → ");
         System.out.print(a + " → ");
         System.out.println(a.toDecimal());
 
@@ -18,12 +19,15 @@ public class SumeriansBabylon {
         Base60 f = Base60.parse(b.toBase60WithPeriod());
 
         System.out.print(b.toDecimal() + " → ");
+        System.out.print(b.toSumerianString() + " → ");
         System.out.print(b + " → ");
         System.out.println(b.toBase60WithPeriod());
 
+        System.out.print(e.toSumerianString() + " → ");
         System.out.print(e + " → ");
         System.out.println(e.toDecimal());
 
+        System.out.print(f.toSumerianString() + " → ");
         System.out.print(f + " → ");
         System.out.println(f.toDecimal());
 
@@ -32,18 +36,24 @@ public class SumeriansBabylon {
         Base60 c = Base60.parse("1:30");
         Base60 d = Base60.parse("2:15");
 
+        System.out.print(c.toSumerianString() + " → ");
         System.out.print(c + " → ");
         System.out.println(c.toDecimal());
 
+        System.out.print(d.toSumerianString() + " → ");
         System.out.print(d + " → ");
         System.out.println(d.toDecimal());
 
         System.out.print(c + " + " + d + " = ");
-        System.out.println(c.add(d));
+        System.out.print(c.add(d) + " → ");
+
+        System.out.print(c.toSumerianString() + " + " + d.toSumerianString() + " = ");
+        System.out.println(c.add(d).toSumerianString() + " → ");
 
         System.out.print(c.toInteger() + " + " + d.toInteger() + " = ");
         System.out.print(c.toInteger().add(d.toInteger()) + " → ");
-        System.out.println(Base60.fromInteger(c.toInteger().add(d.toInteger())));
+        System.out.print(Base60.fromInteger(c.toInteger().add(d.toInteger())) + " → ");
+        System.out.println(Base60.fromInteger(c.toInteger().add(d.toInteger())).toSumerianString());
 
         System.out.println();
 
