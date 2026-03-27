@@ -45,7 +45,7 @@ public final class Base60 implements Comparable<Base60> {
         String[] tens = {"", ten, ten + ten, ten + ten + ten, ten + ten + ten + ten, ten + ten + ten + ten + ten};
 
         String[] digits = new String[60];
-        digits[0] = Character.toString(0x12471); // 𒑱 нуль
+        digits[0] = CUNEIFORM_ZERO; // 𒑱 нуль
         for (int i = 1; i < 60; i++) {
             digits[i] = tens[i / 10] + ones[i % 10];
         }
