@@ -63,6 +63,14 @@ public final class Base60 implements Comparable<Base60> {
         return new Base60(num, den);
     }
 
+    public static Base60 fromFraction(int num, int den) {
+        return new Base60(BigInteger.valueOf(num), BigInteger.valueOf(den));
+    }
+
+    public static Base60 fromFraction(long num, long den) {
+        return new Base60(BigInteger.valueOf(num), BigInteger.valueOf(den));
+    }
+
     // --- Парсер типу 2:46:58.30:15 ---
     public static Base60 parse(String input) {
         Objects.requireNonNull(input);
