@@ -51,6 +51,14 @@ public final class Base60 implements Comparable<Base60> {
         return new Base60(num, den);
     }
 
+    public static Base60 fromInt(int value) {
+        return new Base60(BigInteger.valueOf(value), BigInteger.ONE);
+    }
+
+    public static Base60 fromLong(long value) {
+        return new Base60(BigInteger.valueOf(value), BigInteger.ONE);
+    }
+
     public static Base60 fromFraction(BigInteger num, BigInteger den) {
         return new Base60(num, den);
     }
