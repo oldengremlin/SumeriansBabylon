@@ -398,43 +398,43 @@ class Base60Test {
     @Test
     @DisplayName("нуль → 𒑱")
     void sumerianZero() {
-        assertEquals("\uD808\uDC71", Base60.fromInt(0).toSumerianString()); // U+12471
+        assertEquals(Character.toString(0x12471), Base60.fromInt(0).toSumerianString()); // 𒑱
     }
 
     @Test
     @DisplayName("1 → 𒁹")
     void sumerianOne() {
-        assertEquals("\uD808\uDC79", Base60.fromInt(1).toSumerianString()); // U+12079
+        assertEquals(Character.toString(0x12079), Base60.fromInt(1).toSumerianString()); // 𒁹
     }
 
     @Test
     @DisplayName("10 → 𒌋")
     void sumerianTen() {
-        assertEquals("\uD808\uDF0B", Base60.fromInt(10).toSumerianString()); // U+1230B
+        assertEquals(Character.toString(0x1230B), Base60.fromInt(10).toSumerianString()); // 𒌋
     }
 
     @Test
     @DisplayName("59 → п'ять десятків + дев'ять одиниць")
     void sumerianFiftyNine() {
-        String fifty = "\uD808\uDF0B".repeat(5);                // 𒌋𒌋𒌋𒌋𒌋
-        String nine  = "\uD809\uDC07";                          // 𒐇 U+12407
+        String fifty = Character.toString(0x1230B).repeat(5); // 𒌋𒌋𒌋𒌋𒌋
+        String nine  = Character.toString(0x12407);           // 𒐇
         assertEquals(fifty + nine, Base60.fromInt(59).toSumerianString());
     }
 
     @Test
     @DisplayName("60 (1:0) → два розряди з нулем")
     void sumerianSixty() {
-        String one  = "\uD808\uDC79";   // 𒁹
-        String zero = "\uD808\uDC71";   // 𒑱
+        String one  = Character.toString(0x12079); // 𒁹
+        String zero = Character.toString(0x12471); // 𒑱
         assertEquals(one + " " + zero, Base60.fromInt(60).toSumerianString());
     }
 
     @Test
     @DisplayName("1/2 → ціла 𒑱, дробова 𒌋𒌋𒌋 (30)")
     void sumerianHalf() {
-        String zero   = "\uD808\uDC71";          // 𒑱
-        String thirty = "\uD808\uDF0B".repeat(3); // 𒌋𒌋𒌋
-        String frac   = "\uD808\uDC72";          // 𒑲 U+12472
+        String zero   = Character.toString(0x12471);           // 𒑱
+        String thirty = Character.toString(0x1230B).repeat(3); // 𒌋𒌋𒌋
+        String frac   = Character.toString(0x12472);           // 𒑲
         assertEquals(zero + frac + thirty, Base60.fromFraction(1, 2).toSumerianString());
     }
 
