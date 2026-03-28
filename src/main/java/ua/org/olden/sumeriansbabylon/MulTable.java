@@ -7,23 +7,24 @@ package ua.org.olden.sumeriansbabylon;
  */
 public class MulTable {
 
+    private static final int MAX_FACTOR = 12;
+
     public static void main(String[] args) {
-        int maxFactor = 12; // як на сучасній таблиці множення
 
         System.out.println("=== Вавілонська таблиця множення (base-60, клинопис) ===");
         System.out.println();
 
         // Заголовок
         System.out.printf("%-6s", "×");
-        for (int col = 1; col <= maxFactor; col++) {
+        for (int col = 1; col <= MAX_FACTOR; col++) {
             System.out.printf("%8d", col);
         }
         System.out.println();
-        System.out.println("-".repeat(6 + maxFactor * 8));
+        System.out.println("-".repeat(6 + MAX_FACTOR * 8));
 
-        for (int row = 1; row <= maxFactor; row++) {
+        for (int row = 1; row <= MAX_FACTOR; row++) {
             System.out.printf("%-6d", row);
-            for (int col = 1; col <= maxFactor; col++) {
+            for (int col = 1; col <= MAX_FACTOR; col++) {
                 Base60 product = Base60.fromInt(row).multiply(Base60.fromInt(col));
                 System.out.printf("%8s", product.toString());
             }
@@ -34,8 +35,8 @@ public class MulTable {
         System.out.println("=== Те саме клинописом ===");
         System.out.println();
 
-        for (int row = 1; row <= maxFactor; row++) {
-            for (int col = 1; col <= maxFactor; col++) {
+        for (int row = 1; row <= MAX_FACTOR; row++) {
+            for (int col = 1; col <= MAX_FACTOR; col++) {
                 Base60 a = Base60.fromInt(row);
                 Base60 b = Base60.fromInt(col);
                 Base60 product = a.multiply(b);
