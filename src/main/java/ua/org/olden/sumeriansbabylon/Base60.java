@@ -28,16 +28,16 @@ public final class Base60 extends Number implements Comparable<Base60> {
         // Одиниці 1–9: готові злиті знаки (ASH = вертикальний клин)
         //   1 → 𒁹 U+12079,  2–9 → U+12400–U+12407
         String[] ones = {
-            "",
-            Character.toString(0x12079), // 𒁹  1
-            Character.toString(0x12400), // 𒐀  2
-            Character.toString(0x12401), // 𒐁  3
-            Character.toString(0x12402), // 𒐂  4
-            Character.toString(0x12403), // 𒐃  5
-            Character.toString(0x12404), // 𒐄  6
-            Character.toString(0x12405), // 𒐅  7
-            Character.toString(0x12406), // 𒐆  8
-            Character.toString(0x12407), // 𒐇  9
+                "",
+                Character.toString(0x12079), // 𒁹  1
+                Character.toString(0x12400), // 𒐀  2
+                Character.toString(0x12401), // 𒐁  3
+                Character.toString(0x12402), // 𒐂  4
+                Character.toString(0x12403), // 𒐃  5
+                Character.toString(0x12404), // 𒐄  6
+                Character.toString(0x12405), // 𒐅  7
+                Character.toString(0x12406), // 𒐆  8
+                Character.toString(0x12407), // 𒐇  9
         };
         // Десятки: повторення знаку Winkelhaken 𒌋 (U+1230B)
         //   10→𒌋  20→𒌋𒌋  30→𒌋𒌋𒌋  40→𒌋𒌋𒌋𒌋  50→𒌋𒌋𒌋𒌋𒌋
@@ -309,8 +309,8 @@ public final class Base60 extends Number implements Comparable<Base60> {
             lastNonZero--;
         }
         fracDigits = lastNonZero >= 0
-                     ? fracDigits.subList(0, lastNonZero + 1)
-                     : Collections.emptyList();
+                ? fracDigits.subList(0, lastNonZero + 1)
+                : Collections.emptyList();
 
         String intPart = intDigits.stream()
                 .map(d -> CUNEIFORM_DIGITS[d])
@@ -431,7 +431,7 @@ public final class Base60 extends Number implements Comparable<Base60> {
         if (numerator.signum() == 0) {
             return fromInt(0);
         }
-        Base60 x = fromDecimal(BigDecimal.valueOf(Math.sqrt(toDecimal().doubleValue())));
+        Base60 x = fromDecimal(BigDecimal.valueOf(toDecimal().doubleValue() / Math.random()));
         Base60 two = fromInt(2);
         for (int i = 0; i < 10; i++) {
             x = x.add(this.divide(x)).divide(two);

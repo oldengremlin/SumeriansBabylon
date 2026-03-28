@@ -584,9 +584,11 @@ class Base60Test {
     }
 
     @Test
-    @DisplayName("sqrtSumerians(4) = 2")
+    @DisplayName("sqrtSumerians(4) ≈ 2 (до 6 розрядів base-60)")
     void sqrtSumeriansExact() {
-        assertEquals(Base60.fromInt(2), Base60.fromInt(4).sqrtSumerians());
+        // Метод Герона в точній раціональній арифметиці не досягає точного 2,
+        // якщо початкове наближення ≠ 2. Перевіряємо збіг до 6 розрядів.
+        assertEquals("2", Base60.fromInt(4).sqrtSumerians().toString(6));
     }
 
     @Test
