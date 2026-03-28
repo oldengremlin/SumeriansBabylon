@@ -1,4 +1,4 @@
-# CLAUDE.md
+ye# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -37,7 +37,7 @@ mvn exec:java -Dexec.mainClass=ua.org.olden.sumeriansbabylon.MulTable
 `negate()`, `abs()`, `signum()` — sign utilities.
 
 `sqrt()` — uses `BigDecimal.sqrt(MathContext(50))`.
-`sqrtSumerians()` — Babylonian/Heron method: 10 iterations of `x = (x + S/x) / 2` seeded from `Math.sqrt`. Both methods produce the same result to 8+ base-60 places.
+`sqrtSumerians()` — Babylonian/Heron method: 10 iterations of `x = (x + S/x) / 2`. Initial guess is `value / Math.random()` — intentionally random to reflect that the Babylonian algorithm is about the iteration, not the seed. Converges to the same result as `sqrt()` to 6+ base-60 places.
 
 ### Formatting
 
