@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class Base60 implements Comparable<Base60> {
+public final class Base60 extends Number implements Comparable<Base60> {
 
     private static final BigInteger SIXTY = BigInteger.valueOf(60);
     private static final MathContext MC = new MathContext(50, RoundingMode.HALF_UP);
@@ -364,6 +364,100 @@ public final class Base60 implements Comparable<Base60> {
         BigInteger newNum = this.numerator.multiply(other.denominator);
         BigInteger newDen = this.denominator.multiply(other.numerator);
         return new Base60(newNum, newDen);
+    }
+
+    // --- Знак ---
+    public Base60 negate() {
+        return new Base60(numerator.negate(), denominator);
+    }
+
+    public Base60 abs() {
+        return new Base60(numerator.abs(), denominator);
+    }
+
+    public int signum() {
+        return numerator.signum();
+    }
+
+    // --- Степінь ---
+    public Base60 pow(int n) {
+        if (n == 0) return fromInt(1);
+        if (n > 0) return new Base60(numerator.pow(n), denominator.pow(n));
+        if (numerator.signum() == 0) {
+            throw new ArithmeticException("Zero cannot be raised to a negative power");
+        }
+        int absN = -n;
+        return new Base60(denominator.pow(absN), numerator.pow(absN));
+    }
+
+    public Base60 pow(Base60 exp) {
+        if (exp.denominator.equals(BigInteger.ONE) && exp.numerator.abs().bitLength() <= 31) {
+            return pow(exp.numerator.intValue());
+        }
+        double base = toDecimal().doubleValue();
+        double e = exp.toDecimal().doubleValue();
+        return fromDecimal(BigDecimal.valueOf(Math.pow(base, e)));
+    }
+
+    // --- Остача (floor mod: результат має знак дільника) ---
+    public Base60 mod(Base60 other) {
+        if (other.numerator.signum() == 0) {
+            throw new ArithmeticException("Modulo by zero");
+        }
+        BigInteger p = this.numerator.multiply(other.denominator);
+        BigInteger q = this.denominator.multiply(other.numerator);
+        BigInteger[] divRem = p.divideAndRemainder(q);
+        BigInteger floor = divRem[0];
+        // BigInteger.divide усікає до нуля; коригуємо до floor для від'ємних
+        if (divRem[1].signum() != 0 && (p.signum() < 0) != (q.signum() < 0)) {
+            floor = floor.subtract(BigInteger.ONE);
+        }
+        return this.subtract(other.multiply(fromInteger(floor)));
+    }
+
+    // --- Квадратний корінь ---
+    public Base60 sqrt() {
+        if (numerator.signum() < 0) {
+            throw new ArithmeticException("Square root of negative number");
+        }
+        return fromDecimal(toDecimal().sqrt(MC));
+    }
+
+    // Вавілонський (шумерський) метод Герона: x_{n+1} = (x_n + S/x_n) / 2
+    public Base60 sqrtSumerians() {
+        if (numerator.signum() < 0) {
+            throw new ArithmeticException("Square root of negative number");
+        }
+        if (numerator.signum() == 0) {
+            return fromInt(0);
+        }
+        Base60 x = fromDecimal(BigDecimal.valueOf(Math.sqrt(toDecimal().doubleValue())));
+        Base60 two = fromInt(2);
+        for (int i = 0; i < 10; i++) {
+            x = x.add(this.divide(x)).divide(two);
+        }
+        return x;
+    }
+
+    // --- java.lang.Number ---
+    @Override
+    public int intValue() {
+        return toInteger().intValue();
+    }
+
+    @Override
+    public long longValue() {
+        return toInteger().longValue();
+    }
+
+    @Override
+    public float floatValue() {
+        return toDecimal().floatValue();
+    }
+
+    @Override
+    public double doubleValue() {
+        return toDecimal().doubleValue();
     }
 
     // --- Comparable ---

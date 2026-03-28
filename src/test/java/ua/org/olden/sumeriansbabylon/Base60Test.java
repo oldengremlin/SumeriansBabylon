@@ -443,4 +443,193 @@ class Base60Test {
     void sumerianNegative() {
         assertTrue(Base60.fromInt(-1).toSumerianString().startsWith("-"));
     }
+
+    // -------------------------------------------------------------------------
+    // negate / abs / signum
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("negate: змінює знак")
+    void negate() {
+        assertEquals(Base60.fromInt(-3), Base60.fromInt(3).negate());
+        assertEquals(Base60.fromInt(3), Base60.fromInt(-3).negate());
+    }
+
+    @Test
+    @DisplayName("negate нуля дає нуль")
+    void negateZero() {
+        assertEquals(Base60.fromInt(0), Base60.fromInt(0).negate());
+    }
+
+    @Test
+    @DisplayName("abs: завжди невід'ємне")
+    void abs() {
+        assertEquals(Base60.fromFraction(1, 3), Base60.fromFraction(-1, 3).abs());
+        assertEquals(Base60.fromFraction(1, 3), Base60.fromFraction(1, 3).abs());
+    }
+
+    @Test
+    @DisplayName("signum: -1 / 0 / 1")
+    void signum() {
+        assertEquals(-1, Base60.fromInt(-5).signum());
+        assertEquals(0,  Base60.fromInt(0).signum());
+        assertEquals(1,  Base60.fromInt(5).signum());
+    }
+
+    // -------------------------------------------------------------------------
+    // pow
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("pow(0) = 1")
+    void powZero() {
+        assertEquals(Base60.fromInt(1), Base60.fromFraction(3, 7).pow(0));
+    }
+
+    @Test
+    @DisplayName("pow(int) додатній: 2^10 = 1024")
+    void powPositive() {
+        assertEquals(Base60.fromInt(1024), Base60.fromInt(2).pow(10));
+    }
+
+    @Test
+    @DisplayName("pow(int) від'ємний: 2^-1 = 1/2")
+    void powNegative() {
+        assertEquals(Base60.fromFraction(1, 2), Base60.fromInt(2).pow(-1));
+    }
+
+    @Test
+    @DisplayName("pow(int) дробового числа: (1/2)^3 = 1/8")
+    void powFraction() {
+        assertEquals(Base60.fromFraction(1, 8), Base60.fromFraction(1, 2).pow(3));
+    }
+
+    @Test
+    @DisplayName("pow нуля до від'ємного степеня кидає ArithmeticException")
+    void powZeroNegative() {
+        assertThrows(ArithmeticException.class, () -> Base60.fromInt(0).pow(-1));
+    }
+
+    @Test
+    @DisplayName("pow(Base60) з цілим показником")
+    void powBase60Integer() {
+        assertEquals(Base60.fromInt(8), Base60.fromInt(2).pow(Base60.fromInt(3)));
+    }
+
+    @Test
+    @DisplayName("pow(Base60) з дробовим показником: 4^0.5 ≈ 2")
+    void powBase60Fractional() {
+        Base60 result = Base60.fromInt(4).pow(Base60.fromFraction(1, 2));
+        assertEquals(0, result.compareTo(Base60.fromInt(2)),
+                "4^(1/2) має бути 2, отримали: " + result);
+    }
+
+    // -------------------------------------------------------------------------
+    // mod
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("mod: 7 mod 3 = 1")
+    void modBasic() {
+        assertEquals(Base60.fromInt(1), Base60.fromInt(7).mod(Base60.fromInt(3)));
+    }
+
+    @Test
+    @DisplayName("mod: -7 mod 3 = 2 (floor mod, знак дільника)")
+    void modNegativeDividend() {
+        assertEquals(Base60.fromInt(2), Base60.fromInt(-7).mod(Base60.fromInt(3)));
+    }
+
+    @Test
+    @DisplayName("mod: 7 mod -3 = -2")
+    void modNegativeDivisor() {
+        assertEquals(Base60.fromInt(-2), Base60.fromInt(7).mod(Base60.fromInt(-3)));
+    }
+
+    @Test
+    @DisplayName("mod дробових: 7/2 mod 3/2 = 1/2")
+    void modFractions() {
+        assertEquals(Base60.fromFraction(1, 2),
+                Base60.fromFraction(7, 2).mod(Base60.fromFraction(3, 2)));
+    }
+
+    @Test
+    @DisplayName("mod нуля кидає ArithmeticException")
+    void modZero() {
+        assertThrows(ArithmeticException.class,
+                () -> Base60.fromInt(5).mod(Base60.fromInt(0)));
+    }
+
+    // -------------------------------------------------------------------------
+    // sqrt / sqrtSumerians
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("sqrt(4) = 2")
+    void sqrtExact() {
+        assertEquals(Base60.fromInt(2), Base60.fromInt(4).sqrt());
+    }
+
+    @Test
+    @DisplayName("sqrt(2) наближається до 1.41421...")
+    void sqrtTwo() {
+        String dec = Base60.fromInt(2).sqrt().toDecimal().toPlainString();
+        assertTrue(dec.startsWith("1.41421"), "Отримали: " + dec);
+    }
+
+    @Test
+    @DisplayName("sqrt від'ємного кидає ArithmeticException")
+    void sqrtNegative() {
+        assertThrows(ArithmeticException.class, () -> Base60.fromInt(-1).sqrt());
+    }
+
+    @Test
+    @DisplayName("sqrtSumerians(4) = 2")
+    void sqrtSumeriansExact() {
+        assertEquals(Base60.fromInt(2), Base60.fromInt(4).sqrtSumerians());
+    }
+
+    @Test
+    @DisplayName("sqrtSumerians(2) збігається зі sqrt(2) до 10 знаків base-60")
+    void sqrtSumeriansVsClassic() {
+        Base60 classic  = Base60.fromInt(2).sqrt();
+        Base60 sumerian = Base60.fromInt(2).sqrtSumerians();
+        // порівнюємо перші 10 розрядів base-60 (toString за замовчуванням)
+        assertEquals(classic.toString(8), sumerian.toString(8));
+    }
+
+    // -------------------------------------------------------------------------
+    // java.lang.Number
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("intValue: 7/2 → 3 (усікання)")
+    void intValue() {
+        assertEquals(3, Base60.fromFraction(7, 2).intValue());
+    }
+
+    @Test
+    @DisplayName("longValue: 3600 → 3600L")
+    void longValue() {
+        assertEquals(3600L, Base60.fromInt(3600).longValue());
+    }
+
+    @Test
+    @DisplayName("floatValue: 1/4 ≈ 0.25f")
+    void floatValue() {
+        assertEquals(0.25f, Base60.fromFraction(1, 4).floatValue(), 1e-6f);
+    }
+
+    @Test
+    @DisplayName("doubleValue: 1/3 ≈ 0.333...")
+    void doubleValue() {
+        assertEquals(1.0 / 3.0, Base60.fromFraction(1, 3).doubleValue(), 1e-15);
+    }
+
+    @Test
+    @DisplayName("Base60 є підкласом Number")
+    void isNumber() {
+        Number n = Base60.fromInt(42);
+        assertEquals(42, n.intValue());
+    }
 }
